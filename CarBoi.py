@@ -1,19 +1,21 @@
 import requests
 from bs4 import BeautifulSoup
 
-print('This is just a test and convenience script so only use the XXXX XXX format, anything else will just crash it.')
-
 while True:
-    print('====================')
-    reg = input('Enter car reg : ')
-    url = 'https://www.mycarcheck.com/check/?reg_no='+reg[0:4]+'+'+reg[-3:]
+    print("====================")
+    reg = str(input("Enter registration number: "))
+    url = 'https://www.mycarcheck.com/check?reg_no='+reg.replace(' ', '+')
     response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
-
-    make = soup.find('h3', attrs={'class': 'make-model'}).text.strip()
-    body = soup.findAll('td', attrs={'class': 'col-xs-9'})[0].text.strip()
-    colour = soup.findAll('td', attrs={'class': 'col-xs-9'})[1].text.strip()
-
-    print('Make:', make)
-    print('Body:', body)
-    print('Colour:', colour)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    if soup.title.text == "Page not found - My Car Check":
+        print("Registration number not found")
+        continue
+        
+    for label, attr in zip(['Make', 'Body', 'Colr', 'Fuel', 'Year'],
+                           [{'class': 'top-title'},
+                            {'data-role': 'vehicle-identity-body-type'},
+                            {'data-role': 'vehicle-identity-colour'},
+                            {'data-role': 'vehicle-identity-fuel'},
+                            {'data-role': 'vehicle-identity-year'}]):
+        print("{}: {}".format(label, soup.find(attrs=attr).text))
